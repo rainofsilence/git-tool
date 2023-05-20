@@ -63,7 +63,7 @@ public class ShowLog {
             RevCommit old;
             RevCommit last = null;
             Set<String> updateCommitSet = new TreeSet<>(Comparator.reverseOrder());
-            Map<String, List<CommitLog>> commitLogMap = new HashMap<>();
+            Map<String, List<DiffFilesInCommit.CommitLog>> commitLogMap = new HashMap<>();
             boolean isLastNode = false; // 是否最后一个节点
             while (iterator.hasNext() || (isLastNode && last != null)) {
                 if (last == null) {
@@ -77,29 +77,29 @@ public class ShowLog {
                     continue;
                 }
                 String commitDateStr = getCommitDateStr(last);
-                Set<CommitLog> commitLogs;
+                Set<DiffFilesInCommit.CommitLog> commitLogSet;
                 if (iterator.hasNext()) {
                     old = iterator.next();
-                    commitLogs = DiffFilesInCommit.listDiff(repo, git, old.getId().getName(), last.getId().getName());
+                    commitLogSet = DiffFilesInCommit.listDiff(repo, git, old.getId().getName(), last.getId().getName());
                     if (author.equals(old.getAuthorIdent().getName())) last = old;
                     else last = null;
                 } else {
-                    commitLogs = DiffFilesInCommit.listDiff(repo, git, sinceObjectId.getName(), last.getId().getName());
+                    commitLogSet = DiffFilesInCommit.listDiff(repo, git, sinceObjectId.getName(), last.getId().getName());
                     last = null;
                 }
-                for (CommitLog c : commitLogs) {
+                for (DiffFilesInCommit.CommitLog c : commitLogSet) {
                     c.setCommitDateStr(commitDateStr);
-                    List<CommitLog> cls = commitLogMap.getOrDefault(c.getPath(), new ArrayList<>());
+                    List<DiffFilesInCommit.CommitLog> cls = commitLogMap.getOrDefault(c.getPath(), new ArrayList<>());
                     cls.add(c);
                     commitLogMap.put(c.getPath(), cls);
                 }
                 isLastNode = !iterator.hasNext();
             }
             commitLogMap.keySet().forEach(key -> {
-                List<CommitLog> commitLogs = commitLogMap.get(key);
+                List<DiffFilesInCommit.CommitLog> commitLogs = commitLogMap.get(key);
                 // 按提交时间DESC 如果changType为DELETE则忽略
                 commitLogs = commitLogs.stream()
-                        .sorted(Comparator.comparing(CommitLog::getCommitDateStr).reversed())
+                        .sorted(Comparator.comparing(DiffFilesInCommit.CommitLog::getCommitDateStr).reversed())
                         .collect(Collectors.toList());
                 if (commitLogs.get(0).getChangType() != DiffEntry.ChangeType.DELETE) {
                     updateCommitSet.add(commitLogs.get(0).getPath());

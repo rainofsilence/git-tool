@@ -15,18 +15,18 @@ public class ApiTest extends TestCase {
 
     public void testPrintCommitEntryPathsTest() throws GitAPIException, IOException {
         ShowLog.printCommitEntryPaths(
-                "",
-                "",
-                "",
-                "");
+                "C:\\Users\\rainofsilence\\Codes\\TMP\\butterfly",
+                "rainofsilence",
+                "6ce29582",
+                "46b11f71");
     }
 
     public void testArchiveFilesInCommitTest() throws GitAPIException, IOException {
         Archive.archiveFilesInCommit(
-                "",
-                "",
-                "",
-                "",
+                "C:\\Users\\rainofsilence\\Codes\\TMP\\butterfly",
+                "rainofsilence",
+                "6ce29582",
+                "46b11f71",
                 ""
         );
     }
