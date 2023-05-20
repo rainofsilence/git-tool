@@ -1,6 +1,7 @@
 package cn.silence.utils;
 
 import java.io.File;
+import java.nio.file.Files;
 
 /**
  * @author rainofsilence
@@ -47,5 +48,22 @@ public class FileUtils {
             }
         }
         return file.delete();
+    }
+
+    /**
+     * @param source
+     * @param target
+     * @return
+     */
+    public static boolean copyFile(String source, String target) {
+        try {
+            File targetFile = new File(target);
+            File parentDir = targetFile.getParentFile();
+            if (!parentDir.exists()) parentDir.mkdirs();
+            Files.copy(new File(source).toPath(), new File(target).toPath());
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
     }
 }

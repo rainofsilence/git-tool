@@ -19,8 +19,8 @@ public class ArchiveCommit {
     public static void archiveFilesInCommit(String localRepoPath, String author, String since, String until, String targetArchivePath) throws GitAPIException, IOException {
         Set<String> entryList = getCommitEntryList(localRepoPath, author, since, until);
         boolean dir = FileUtils.createDir(targetArchivePath, true);
-        entryList.forEach(e->{
-            FileUtils.createFile(targetArchivePath + File.separator + e);
+        entryList.forEach(e -> {
+            FileUtils.copyFile(localRepoPath + File.separator + e, targetArchivePath + File.separator + e);
         });
     }
 }
