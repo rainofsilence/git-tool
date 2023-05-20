@@ -2,6 +2,7 @@ package cn.silence.api;
 
 import junit.framework.TestCase;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.junit.Test;
 
 import java.io.IOException;
 
@@ -12,23 +13,21 @@ import java.io.IOException;
  */
 public class ApiTest extends TestCase {
 
-    public void testGetCommitEntryListTest() throws GitAPIException, IOException {
-        ShowLog.getCommitEntryListPrint(
+    public void testPrintCommitEntryPathsTest() throws GitAPIException, IOException {
+        ShowLog.printCommitEntryPaths(
                 "",
                 "",
                 "",
                 "");
-		System.out.println("ShowLog.getCommitEntryListPrint success!");
     }
 
     public void testArchiveFilesInCommitTest() throws GitAPIException, IOException {
-        ArchiveCommit.archiveFilesInCommit(
+        Archive.archiveFilesInCommit(
                 "",
                 "",
                 "",
                 "",
                 ""
         );
-        System.out.println("ArchiveCommit.archiveFilesInCommit success!");
     }
 }

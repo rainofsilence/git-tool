@@ -33,16 +33,17 @@ public class DiffFilesInCommit {
      * @throws GitAPIException
      * @throws IOException
      */
-    public static Set<String> listDiffNotDelete(Repository repo, Git git, String oldCommit, String newCommit) throws GitAPIException, IOException {
+    public static Set<CommitLog> listDiff(Repository repo, Git git, String oldCommit, String newCommit) throws GitAPIException, IOException {
         final List<DiffEntry> diffs = git.diff()
                 .setOldTree(prepareTreeParser(repo, oldCommit))
                 .setNewTree(prepareTreeParser(repo, newCommit))
                 .call();
-        Set<String> updateFileNameSet = new HashSet<>();
+        Set<CommitLog> updateFileNameSet = new HashSet<>();
         for (DiffEntry diff : diffs) {
-            if (!diff.getChangeType().equals(DiffEntry.ChangeType.DELETE)) {
-                updateFileNameSet.add(diff.getNewPath());
-            }
+            CommitLog commitLog = new CommitLog();
+            commitLog.setChangType(diff.getChangeType());
+            commitLog.setPath(DiffEntry.ChangeType.DELETE == diff.getChangeType() ? diff.getOldPath() : diff.getNewPath());
+            updateFileNameSet.add(commitLog);
         }
         return updateFileNameSet;
     }
