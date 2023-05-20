@@ -13,12 +13,12 @@ import java.io.IOException;
 public class ApiTest extends TestCase {
 
     public void testGetCommitEntryListTest() throws GitAPIException, IOException {
-        ShowLog.getCommitEntryListPrinf(
+        ShowLog.getCommitEntryListPrint(
                 "",
                 "",
                 "",
                 "");
-		System.out.println("ShowLog.getCommitEntryListPrinf success!");
+		System.out.println("ShowLog.getCommitEntryListPrint success!");
     }
 
     public void testArchiveFilesInCommitTest() throws GitAPIException, IOException {
