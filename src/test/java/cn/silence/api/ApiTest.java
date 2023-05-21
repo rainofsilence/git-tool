@@ -2,7 +2,6 @@ package cn.silence.api;
 
 import junit.framework.TestCase;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.junit.Test;
 
 import java.io.IOException;
 
@@ -14,7 +13,7 @@ import java.io.IOException;
 public class ApiTest extends TestCase {
 
     public void testPrintCommitEntryPathsTest() throws GitAPIException, IOException {
-        ShowLog.printCommitEntryPaths(
+        ShowLog.printChangeFilePaths(
                 "C:\\Users\\rainofsilence\\Codes\\TMP\\butterfly",
                 "rainofsilence",
                 "6ce29582",

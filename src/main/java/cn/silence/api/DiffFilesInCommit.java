@@ -12,6 +12,7 @@ import org.eclipse.jgit.treewalk.AbstractTreeIterator;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -33,17 +34,18 @@ public class DiffFilesInCommit {
      * @throws GitAPIException
      * @throws IOException
      */
-    public static Set<CommitLog> listDiff(Repository repo, Git git, String oldCommit, String newCommit) throws GitAPIException, IOException {
+    public static Set<ChangeFile> listDiffChangFile(Repository repo, Git git, String oldCommit, String newCommit) throws GitAPIException, IOException {
         final List<DiffEntry> diffs = git.diff()
                 .setOldTree(prepareTreeParser(repo, oldCommit))
                 .setNewTree(prepareTreeParser(repo, newCommit))
                 .call();
-        Set<CommitLog> updateFileNameSet = new HashSet<>();
+        Set<ChangeFile> updateFileNameSet = new HashSet<>();
         for (DiffEntry diff : diffs) {
-            CommitLog commitLog = new CommitLog();
-            commitLog.setChangType(diff.getChangeType());
-            commitLog.setPath(DiffEntry.ChangeType.DELETE == diff.getChangeType() ? diff.getOldPath() : diff.getNewPath());
-            updateFileNameSet.add(commitLog);
+            ChangeFile changeFile = new ChangeFile();
+            changeFile.setChangType(diff.getChangeType());
+            changeFile.setOldPath(diff.getOldPath());
+            changeFile.setNewPath(diff.getNewPath());
+            updateFileNameSet.add(changeFile);
         }
         return updateFileNameSet;
     }
@@ -71,20 +73,28 @@ public class DiffFilesInCommit {
      * @version 1.0.0
      * @since 2023/05/20 17:55:38
      */
-    public static class CommitLog {
+    public static class ChangeFile implements Serializable {
 
-        private String path;
-
+        private static final long serialVersionUID = -6154132705858157795L;
+        private String oldPath;
+        private String newPath;
         private DiffEntry.ChangeType changType;
-
         private String commitDateStr;
 
-        public String getPath() {
-            return path;
+        public String getOldPath() {
+            return oldPath;
         }
 
-        public void setPath(String path) {
-            this.path = path;
+        public void setOldPath(String oldPath) {
+            this.oldPath = oldPath;
+        }
+
+        public String getNewPath() {
+            return newPath;
+        }
+
+        public void setNewPath(String newPath) {
+            this.newPath = newPath;
         }
 
         public DiffEntry.ChangeType getChangType() {
@@ -105,8 +115,9 @@ public class DiffFilesInCommit {
 
         @Override
         public String toString() {
-            return "CommitLog{" +
-                    "path='" + path + '\'' +
+            return "ChangeFile{" +
+                    "oldPath='" + oldPath + '\'' +
+                    ", newPath='" + newPath + '\'' +
                     ", changType=" + changType +
                     ", commitDateStr='" + commitDateStr + '\'' +
                     '}';

@@ -9,7 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 
-import static cn.silence.api.ShowLog.getCommitEntryPaths;
+import static cn.silence.api.ShowLog.getChangeFilePaths;
 
 /**
  * @author rainofsilence
@@ -25,7 +25,7 @@ public class Archive {
         Assert.notBlank(author, "author cannot be null");
         Assert.notBlank(since, "since cannot be null");
         Assert.notBlank(until, "until cannot be null");
-        Set<String> entryList = getCommitEntryPaths(localRepoPath, author, since, until);
+        Set<String> entryList = getChangeFilePaths(localRepoPath, author, since, until);
         if (targetArchivePath == null || targetArchivePath.length() == 0) {
             targetArchivePath = localRepoPath + File.separator + ARCHIVE + File.separator + ARCHIVE + "-" + DateUtils.formatDate();
         }

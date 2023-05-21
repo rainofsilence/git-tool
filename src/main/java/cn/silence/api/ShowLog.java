@@ -32,12 +32,9 @@ public class ShowLog {
      * @throws IOException
      * @throws GitAPIException
      */
-    public static void printCommitEntryPaths(String localRepoPath, String author, String since, String until) throws IOException, GitAPIException {
-        Assert.notBlank(localRepoPath,"localRepoPath cannot be null");
-        Assert.notBlank(author,"author cannot be null");
-        Assert.notBlank(since,"since cannot be null");
-        Assert.notBlank(until,"until cannot be null");
-        Set<String> entryList = getCommitEntryPaths(localRepoPath, author, since, until);
+    public static void printChangeFilePaths(String localRepoPath, String author, String since, String until) throws IOException, GitAPIException {
+
+        Set<String> entryList = getChangeFilePaths(localRepoPath, author, since, until);
         entryList.forEach(System.out::println);
         System.out.printf("ShowLog.printCommitEntryPaths success and entryList.size = [%s]%n", entryList.size());
     }
@@ -53,7 +50,11 @@ public class ShowLog {
      * @throws IOException
      * @throws GitAPIException
      */
-    public static Set<String> getCommitEntryPaths(String localRepoPath, String author, String since, String until) throws IOException, GitAPIException {
+    public static Set<String> getChangeFilePaths(String localRepoPath, String author, String since, String until) throws IOException, GitAPIException {
+        Assert.notBlank(localRepoPath, "localRepoPath cannot be null");
+        Assert.notBlank(author, "author cannot be null");
+        Assert.notBlank(since, "since cannot be null");
+        Assert.notBlank(until, "until cannot be null");
         try (Git git = Git.open(new File(localRepoPath))) {
             Repository repo = git.getRepository();
             ObjectId sinceObjectId = repo.resolve(since);
@@ -62,8 +63,8 @@ public class ShowLog {
             Iterator<RevCommit> iterator = logs.iterator();
             RevCommit old;
             RevCommit last = null;
-            Set<String> updateCommitSet = new TreeSet<>(Comparator.reverseOrder());
-            Map<String, List<DiffFilesInCommit.CommitLog>> commitLogMap = new HashMap<>();
+            Set<String> changFileSet = new TreeSet<>(Comparator.reverseOrder());
+            Map<String, List<DiffFilesInCommit.ChangeFile>> changFileHashMap = new HashMap<>();
             boolean isLastNode = false; // 是否最后一个节点
             while (iterator.hasNext() || (isLastNode && last != null)) {
                 if (last == null) {
@@ -71,41 +72,43 @@ public class ShowLog {
                     isLastNode = !iterator.hasNext();
                     continue;
                 }
-                if (!author.contains(last.getAuthorIdent().getName())) {
+                if (!author.equals(last.getAuthorIdent().getName())) {
                     last = null;
                     isLastNode = !iterator.hasNext();
                     continue;
                 }
                 String commitDateStr = getCommitDateStr(last);
-                Set<DiffFilesInCommit.CommitLog> commitLogSet;
+                Set<DiffFilesInCommit.ChangeFile> changeFileSet;
                 if (iterator.hasNext()) {
                     old = iterator.next();
-                    commitLogSet = DiffFilesInCommit.listDiff(repo, git, old.getId().getName(), last.getId().getName());
+                    changeFileSet = DiffFilesInCommit.listDiffChangFile(repo, git, old.getId().getName(), last.getId().getName());
                     if (author.equals(old.getAuthorIdent().getName())) last = old;
                     else last = null;
                 } else {
-                    commitLogSet = DiffFilesInCommit.listDiff(repo, git, sinceObjectId.getName(), last.getId().getName());
+                    changeFileSet = DiffFilesInCommit.listDiffChangFile(repo, git, sinceObjectId.getName(), last.getId().getName());
                     last = null;
                 }
-                for (DiffFilesInCommit.CommitLog c : commitLogSet) {
+                for (DiffFilesInCommit.ChangeFile c : changeFileSet) {
                     c.setCommitDateStr(commitDateStr);
-                    List<DiffFilesInCommit.CommitLog> cls = commitLogMap.getOrDefault(c.getPath(), new ArrayList<>());
-                    cls.add(c);
-                    commitLogMap.put(c.getPath(), cls);
+                    String filePath = c.getNewPath();
+                    if (c.getChangType() == DiffEntry.ChangeType.DELETE) filePath = c.getOldPath();
+                    List<DiffFilesInCommit.ChangeFile> cfs = changFileHashMap.getOrDefault(filePath, new ArrayList<>());
+                    cfs.add(c);
+                    changFileHashMap.put(filePath, cfs);
                 }
                 isLastNode = !iterator.hasNext();
             }
-            commitLogMap.keySet().forEach(key -> {
-                List<DiffFilesInCommit.CommitLog> commitLogs = commitLogMap.get(key);
+            changFileHashMap.keySet().forEach(key -> {
+                List<DiffFilesInCommit.ChangeFile> changeFiles = changFileHashMap.get(key);
                 // 按提交时间DESC 如果changType为DELETE则忽略
-                commitLogs = commitLogs.stream()
-                        .sorted(Comparator.comparing(DiffFilesInCommit.CommitLog::getCommitDateStr).reversed())
+                changeFiles = changeFiles.stream()
+                        .sorted(Comparator.comparing(DiffFilesInCommit.ChangeFile::getCommitDateStr).reversed())
                         .collect(Collectors.toList());
-                if (commitLogs.get(0).getChangType() != DiffEntry.ChangeType.DELETE) {
-                    updateCommitSet.add(commitLogs.get(0).getPath());
+                if (changeFiles.get(0).getChangType() != DiffEntry.ChangeType.DELETE) {
+                    changFileSet.add(changeFiles.get(0).getNewPath());
                 }
             });
-            return updateCommitSet;
+            return changFileSet;
         }
     }
 
