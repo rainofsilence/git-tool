@@ -33,7 +33,6 @@ public class ShowLog {
      * @throws GitAPIException
      */
     public static void printChangeFilePaths(String localRepoPath, String author, String since, String until) throws IOException, GitAPIException {
-
         Set<String> entryList = getChangeFilePaths(localRepoPath, author, since, until);
         entryList.forEach(System.out::println);
         System.out.printf("ShowLog.printCommitEntryPaths success and entryList.size = [%s]%n", entryList.size());

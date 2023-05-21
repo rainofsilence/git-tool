@@ -21,10 +21,6 @@ public class Archive {
     public static final String ARCHIVE = "archive";
 
     public static void archiveFilesInCommit(String localRepoPath, String author, String since, String until, String targetArchivePath) throws GitAPIException, IOException {
-        Assert.notBlank(localRepoPath, "localRepoPath cannot be null");
-        Assert.notBlank(author, "author cannot be null");
-        Assert.notBlank(since, "since cannot be null");
-        Assert.notBlank(until, "until cannot be null");
         Set<String> entryList = getChangeFilePaths(localRepoPath, author, since, until);
         if (targetArchivePath == null || targetArchivePath.length() == 0) {
             targetArchivePath = localRepoPath + File.separator + ARCHIVE + File.separator + ARCHIVE + "-" + DateUtils.formatDate();
