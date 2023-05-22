@@ -1,12 +1,15 @@
 package cn.silence.api;
 
 import cn.silence.utils.Assert;
+import cn.silence.utils.StringUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.revwalk.filter.AuthorRevFilter;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,8 +37,9 @@ public class ShowLog {
      */
     public static void printChangeFilePaths(String localRepoPath, String author, String since, String until) throws IOException, GitAPIException {
         Set<String> entryList = getChangeFilePaths(localRepoPath, author, since, until);
+        System.out.println("\nprint final changFile start");
         entryList.forEach(System.out::println);
-        System.out.printf("ShowLog.printCommitEntryPaths success and entryList.size = [%s]%n", entryList.size());
+        System.out.printf("==> size = [%s]%n", entryList.size());
     }
 
     /**
@@ -58,35 +62,37 @@ public class ShowLog {
             Repository repo = git.getRepository();
             ObjectId sinceObjectId = repo.resolve(since);
             ObjectId untilObjectId = repo.resolve(until);
-            Iterable<RevCommit> logs = git.log().addRange(sinceObjectId, untilObjectId).call();
+            Iterable<RevCommit> logs = git.log().addRange(sinceObjectId, untilObjectId).setRevFilter(AuthorRevFilter.create(author)).call();
             Iterator<RevCommit> iterator = logs.iterator();
-            RevCommit old;
-            RevCommit last = null;
             Set<String> changFileSet = new TreeSet<>(Comparator.reverseOrder());
             Map<String, List<DiffFilesInCommit.ChangeFile>> changFileHashMap = new HashMap<>();
             boolean isLastNode = false; // 是否最后一个节点
-            while (iterator.hasNext() || (isLastNode && last != null)) {
-                if (last == null) {
-                    last = iterator.next();
-                    isLastNode = !iterator.hasNext();
-                    continue;
-                }
-                if (!author.equals(last.getAuthorIdent().getName())) {
-                    last = null;
-                    isLastNode = !iterator.hasNext();
-                    continue;
-                }
-                String commitDateStr = getCommitDateStr(last);
-                Set<DiffFilesInCommit.ChangeFile> changeFileSet;
-                if (iterator.hasNext()) {
-                    old = iterator.next();
-                    changeFileSet = DiffFilesInCommit.listDiffChangFile(repo, git, old.getId().getName(), last.getId().getName());
-                    if (author.equals(old.getAuthorIdent().getName())) last = old;
-                    else last = null;
+            while (iterator.hasNext() || isLastNode) {
+                RevCommit curCommit;
+                if (isLastNode) {
+                    curCommit = RevCommitOpt.getRevCommitByObjectId(sinceObjectId, repo);
+                    isLastNode = false;
+                    if (!author.equals(curCommit.getAuthorIdent().getName())) continue;
                 } else {
-                    changeFileSet = DiffFilesInCommit.listDiffChangFile(repo, git, sinceObjectId.getName(), last.getId().getName());
-                    last = null;
+                    curCommit = iterator.next();
+                    if (!iterator.hasNext()) isLastNode = true;
                 }
+                // 忽略特定提交
+                if (isIgnoreShortMessage(curCommit.getShortMessage())) continue;
+                // 重新获取 RevCommit 否则获取上一个提交会失败
+                RevWalk walk = new RevWalk(repo);
+                curCommit = walk.parseCommit(curCommit.getId());
+                // 获取上一个提交
+                RevCommit prevCommit = RevCommitOpt.getPrevCommit(curCommit, repo);
+                if (prevCommit == null) {
+                    System.out.println("\nCommitID: " + curCommit.getId().getName() + " not found PrevCommit");
+                    continue;
+                }
+                System.out.println("\nShow diff files in new[" + curCommit.getId().getName() + "] between old[" + prevCommit.getId().getName() + "]");
+                System.out.println("Show diff files in new[" + curCommit.getShortMessage() + "] between old[" + prevCommit.getShortMessage() + "]");
+                Set<DiffFilesInCommit.ChangeFile> changeFileSet = DiffFilesInCommit.listDiffChangFile(repo, git, prevCommit.getId(), curCommit.getId());
+                String commitDateStr = getCommitDateStr(curCommit);
+                int count = 0;
                 for (DiffFilesInCommit.ChangeFile c : changeFileSet) {
                     c.setCommitDateStr(commitDateStr);
                     String filePath = c.getNewPath();
@@ -94,7 +100,10 @@ public class ShowLog {
                     List<DiffFilesInCommit.ChangeFile> cfs = changFileHashMap.getOrDefault(filePath, new ArrayList<>());
                     cfs.add(c);
                     changFileHashMap.put(filePath, cfs);
+                    System.out.println("<" + c.getChangType().name() + "> " + c.getOldPath() + " >> " + c.getNewPath());
+                    count++;
                 }
+                System.out.println("ChangeFile count = [" + count + "]");
                 isLastNode = !iterator.hasNext();
             }
             changFileHashMap.keySet().forEach(key -> {
@@ -109,6 +118,21 @@ public class ShowLog {
             });
             return changFileSet;
         }
+    }
+
+    /**
+     * 提交日志是否在忽略名单中
+     *
+     * @param shortMessage
+     * @return
+     */
+    private static boolean isIgnoreShortMessage(String shortMessage) {
+        final String[] ignoreShortMessages = new String[]{"Merge"};
+        if (StringUtils.isBlank(shortMessage)) return false;
+        for (String message : ignoreShortMessages) {
+            if (shortMessage.startsWith(message)) return true;
+        }
+        return false;
     }
 
     /**
