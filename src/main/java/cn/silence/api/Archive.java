@@ -35,7 +35,7 @@ public class Archive {
         }
 
         if (StringUtils.isBlank(targetArchivePath)) {
-            targetArchivePath = localRepoPath.replace("/.git", "") + File.separator + ARCHIVE + "_" + repoName + File.separator + ARCHIVE + "_" + DateUtils.formatDate();
+            targetArchivePath = localRepoPath + File.separator + ARCHIVE + "_" + repoName + File.separator + ARCHIVE + "_" + DateUtils.formatDate();
         } else {
             targetArchivePath = targetArchivePath + File.separator + ARCHIVE + "_" + repoName + File.separator + ARCHIVE + "_" + DateUtils.formatDate();
         }
