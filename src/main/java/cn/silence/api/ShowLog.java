@@ -27,6 +27,8 @@ import java.util.stream.Collectors;
  */
 public class ShowLog {
 
+    private static final String DIVIDING_LINE = "---------------------------------------------------------------------";
+
     /**
      * @param localRepoPath
      * @param author
@@ -37,9 +39,9 @@ public class ShowLog {
      */
     public static void printChangeFilePaths(String localRepoPath, String author, String since, String until) throws IOException, GitAPIException {
         Set<String> entryList = getChangeFilePaths(localRepoPath, author, since, until);
-        System.out.println("\nprint final changFile start");
+        System.out.println("\nprint final changFile list\n" + DIVIDING_LINE);
         entryList.forEach(System.out::println);
-        System.out.printf("==> size = [%s]%n", entryList.size());
+        System.out.printf(DIVIDING_LINE + "\nsize = [%s]%n", entryList.size());
     }
 
     /**
@@ -85,11 +87,11 @@ public class ShowLog {
                 // 获取上一个提交
                 RevCommit prevCommit = RevCommitOpt.getPrevCommit(curCommit, repo);
                 if (prevCommit == null) {
-                    System.out.println("\nCommitID: " + curCommit.getId().getName() + " not found PrevCommit");
+                    System.out.println("\n" + DIVIDING_LINE + "\nCommitID: " + curCommit.getId().getName() + " not found PrevCommit");
                     continue;
                 }
-                System.out.println("\nShow diff files in new[" + curCommit.getId().getName() + "] between old[" + prevCommit.getId().getName() + "]");
-                System.out.println("Show diff files in new[" + curCommit.getShortMessage() + "] between old[" + prevCommit.getShortMessage() + "]");
+                System.out.println("\n" + DIVIDING_LINE + "\nRevisions new[" + curCommit.getId().getName() + "] between old[" + prevCommit.getId().getName() + "]");
+                System.out.println("ShortMessage new[" + curCommit.getShortMessage() + "] between old[" + prevCommit.getShortMessage() + "]");
                 Set<DiffFilesInCommit.ChangeFile> changeFileSet = DiffFilesInCommit.listDiffChangFile(repo, git, prevCommit.getId(), curCommit.getId());
                 String commitDateStr = getCommitDateStr(curCommit);
                 int count = 0;
@@ -100,10 +102,10 @@ public class ShowLog {
                     List<DiffFilesInCommit.ChangeFile> cfs = changFileHashMap.getOrDefault(filePath, new ArrayList<>());
                     cfs.add(c);
                     changFileHashMap.put(filePath, cfs);
-                    System.out.println("<" + c.getChangType().name() + "> " + c.getOldPath() + " >> " + c.getNewPath());
+                    System.out.println("<ChangType: " + c.getChangType().name() + "> " + c.getOldPath() + " >> " + c.getNewPath());
                     count++;
                 }
-                System.out.println("ChangeFile count = [" + count + "]");
+                System.out.println("count = [" + count + "]");
                 isLastNode = !iterator.hasNext();
             }
             changFileHashMap.keySet().forEach(key -> {
