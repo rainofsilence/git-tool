@@ -22,11 +22,11 @@ public class ApiTest extends TestCase {
 
     public void testArchiveFilesInCommitTest() throws GitAPIException, IOException {
         Archive.archiveFilesInCommit(
-                "C:\\Users\\rainofsilence\\Codes\\TMP\\butterfly",
+                "C:\\Users\\rainofsilence\\Codes\\TMP\\butterfly\\.git",
                 "rainofsilence",
                 "6ce29582",
-                "46b11f71",
-                ""
+                "3ab8fa84",
+                "C:\\Users\\rainofsilence\\Codes\\TMP\\butterfly"
         );
     }
 }

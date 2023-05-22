@@ -5,7 +5,7 @@ package cn.silence.utils;
  * @version 1.0.0
  * @since 2023/05/20 21:33:10
  */
-public class StringUtils {
+public class StringUtils implements StrLenConstant {
 
     public static boolean isBlank(CharSequence cs) {
         if (cs == null) return true;

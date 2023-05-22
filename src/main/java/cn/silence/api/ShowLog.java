@@ -20,6 +20,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static cn.silence.utils.StrLenConstant.DIVIDING_LINE;
+
 /**
  * @author rainofsilence
  * @version 1.0.0
@@ -27,7 +29,6 @@ import java.util.stream.Collectors;
  */
 public class ShowLog {
 
-    private static final String DIVIDING_LINE = "---------------------------------------------------------------------";
 
     /**
      * @param localRepoPath
@@ -147,7 +148,7 @@ public class ShowLog {
         Instant commitInstant = Instant.ofEpochSecond(commit.getCommitTime());
         ZoneId zoneId = commit.getAuthorIdent().getTimeZone().toZoneId();
         ZonedDateTime authorDateTime = ZonedDateTime.ofInstant(commitInstant, zoneId);
-        String gitDateTimeFormatString = "EEE MMM dd HH:mm:ss yyyy Z";
+        String gitDateTimeFormatString = "yyyy/MM/dd HH:mm:ss";
         return authorDateTime.format(DateTimeFormatter.ofPattern(gitDateTimeFormatString));
     }
 }
