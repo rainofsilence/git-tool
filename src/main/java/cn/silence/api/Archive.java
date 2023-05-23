@@ -47,6 +47,6 @@ public class Archive {
             FileUtils.copyFile(localRepoPath + File.separator + entryName, targetArchivePath + File.separator + entryName);
             count++;
         }
-        System.out.println("\nOutputPath: " + targetArchivePath + "\nChangeFile size = [" + count + "]");
+        System.out.println("\nOutputPath: " + targetArchivePath + "\ntotal = [" + count + "]");
     }
 }
